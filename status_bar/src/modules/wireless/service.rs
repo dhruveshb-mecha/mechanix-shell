@@ -1,7 +1,7 @@
 use crate::modules::wireless::errors::{WirelessServiceError, WirelessServiceErrorCodes};
 use crate::{WirelessConnectedState, WirelessState};
 use anyhow::{bail, Result};
-use mecha_network_ctl::wireless_network::WirelessNetworkModule;
+use mecha_network_ctl::wireless_network::WirelessNetworkControl;
 use tracing::{debug, error, info};
 
 pub struct WirelessService {}
@@ -11,14 +11,15 @@ impl WirelessService {
         let task = "get_wireless_status";
 
         //add mctl libs code here
-        let is_wireless_on = WirelessNetworkModule::wireless_network_status();
-        info!(task, "wireless status is {}", is_wireless_on);
+
+        let is_wireless_on =  WirelessNetworkControl::wireless_network_status().await;
+        info!(task, "wireless status is {:?}", is_wireless_on);
 
         if !is_wireless_on {
             return Ok(WirelessState::Off);
         }
 
-        let current_wireless_network = match WirelessNetworkModule.current_wireless_network().await
+        let current_wireless_network = match WirelessNetworkControl.current_wireless_network().await
         {
             Ok(r) => r,
             Err(e) => {
