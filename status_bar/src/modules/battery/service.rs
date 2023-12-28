@@ -1,5 +1,8 @@
 use crate::{
-    modules::battery::errors::{BatteryServiceError, BatteryServiceErrorCodes},
+    modules::battery::{
+        self,
+        errors::{BatteryServiceError, BatteryServiceErrorCodes},
+    },
     BatteryState,
 };
 
@@ -12,8 +15,11 @@ pub struct BatteryService {}
 impl BatteryService {
     pub async fn get_battery_status() -> Result<BatteryState> {
         let task = "get_battery_status";
-
-        let battery = Battery::default();
+        let battery_path = "/sys/class/power_supply/bq27441-0".to_string();
+        let battery = Battery {
+            path: format!("{}/uevent", battery_path),
+            currnet_now: format!("{}/current_now", battery_path),
+        };
         let battery_info = match battery.info() {
             Ok(v) => v,
             Err(e) => {
