@@ -25,6 +25,8 @@ impl BatteryService {
             }
         };
 
+        info!(task, "battery info is {:?}", battery_info);
+
         debug!(task, "battery info is {:?}", battery_info);
 
         let battery_state = match battery_info.capacity {
