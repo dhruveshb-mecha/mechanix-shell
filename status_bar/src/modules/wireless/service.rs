@@ -12,44 +12,51 @@ impl WirelessService {
 
         //add mctl libs code here
 
-        let is_wireless_on =  WirelessNetworkControl::wireless_network_status().await;
-        info!(task, "wireless status is {:?}", is_wireless_on);
+        // let is_wireless_on = WirelessNetworkControl::wireless_network_status().await;
+        // info!(task, "wireless status is {:?}", is_wireless_on);
 
-        if !is_wireless_on {
-            return Ok(WirelessState::Off);
-        }
+        // if !is_wireless_on {
+        //     return Ok(WirelessState::Off);
+        // }
 
-        let current_wireless_network = match WirelessNetworkControl.current_wireless_network().await
-        {
-            Ok(r) => r,
-            Err(e) => {
-                error!(
-                    task,
-                    "error while getting current connected wireless network {}", e
-                );
-                bail!(WirelessServiceError::new(
-                    WirelessServiceErrorCodes::GetCurrentWirelessNetworkError,
-                    format!(
-                        "error while getting current connected wireless network {}",
-                        e
-                    ),
-                    true
-                ));
-            }
-        };
-        debug!(
-            task,
-            "current wireless network is {:?}", current_wireless_network
-        );
+        // let current_wireless_network = match WirelessNetworkControl.current_wireless_network().await
+        // {
+        //     Ok(r) => r,
+        //     Err(e) => {
+        //         error!(
+        //             task,
+        //             "error while getting current connected wireless network {}", e
+        //         );
+        //         bail!(WirelessServiceError::new(
+        //             WirelessServiceErrorCodes::GetCurrentWirelessNetworkError,
+        //             format!(
+        //                 "error while getting current connected wireless network {}",
+        //                 e
+        //             ),
+        //             true
+        //         ));
+        //     }
+        // };
+        // debug!(
+        //     task,
+        //     "current wireless network is {:?}", current_wireless_network
+        // );
 
-        if current_wireless_network.signal <= -80 {
-            Ok(WirelessState::Connected(WirelessConnectedState::Low))
-        } else if current_wireless_network.signal <= -60 {
-            Ok(WirelessState::Connected(WirelessConnectedState::Weak))
-        } else if current_wireless_network.signal <= -40 {
+        // if current_wireless_network.signal <= -80 {
+        //     Ok(WirelessState::Connected(WirelessConnectedState::Low))
+        // } else if current_wireless_network.signal <= -60 {
+        //     Ok(WirelessState::Connected(WirelessConnectedState::Weak))
+        // } else if current_wireless_network.signal <= -40 {
+        //     Ok(WirelessState::Connected(WirelessConnectedState::Good))
+        // } else {
+        //     Ok(WirelessState::Connected(WirelessConnectedState::Strong))
+        // }
+
+        let connected = WirelessNetworkControl::wireless_network_status().await;
+        if connected {
             Ok(WirelessState::Connected(WirelessConnectedState::Good))
         } else {
-            Ok(WirelessState::Connected(WirelessConnectedState::Strong))
+            Ok(WirelessState::Off)
         }
     }
 }
