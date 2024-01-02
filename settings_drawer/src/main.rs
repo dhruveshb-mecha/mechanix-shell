@@ -43,22 +43,22 @@ pub enum BluetoothState {
 /// # SettingsDrawer State
 ///
 /// This struct is the state definition of the entire application
-struct SettingsDrawer {
+pub struct SettingsDrawer {
     settings: SettingsDrawerSettings,
     custom_theme: SettingsDrawerTheme,
     wifi_state: WifiState,
     bluetooth_state: BluetoothState,
     setting_actions: FactoryVecDeque<BasicWidget>,
-    // battery_action: BasicWidget,
-    // cpu_action: BasicWidget,
-    // memory_action: BasicWidget,
-    // running_apps_action: BasicWidget,
-    //wifi_action: BasicWidget,
-    // bluetooth_action: BasicWidget,
-    // auto_rotate_action: BasicWidget,
-    // settings_action: BasicWidget,
-    // sound_action: BasicWidget,
-    // brigtness_action: BasicWidget,
+    battery_capacity: u32, // battery_action: BasicWidget,
+                           // cpu_action: BasicWidget,
+                           // memory_action: BasicWidget,
+                           // running_apps_action: BasicWidget,
+                           //wifi_action: BasicWidget,
+                           // bluetooth_action: BasicWidget,
+                           // auto_rotate_action: BasicWidget,
+                           // settings_action: BasicWidget,
+                           // sound_action: BasicWidget,
+                           // brigtness_action: BasicWidget,
 }
 
 /// ## Message
@@ -78,9 +78,12 @@ pub enum Message {
     SoundStatusChanged(BasicWidgetMessageOutput),
     BrightnessStatusChanged(BasicWidgetMessageOutput),
     WidgetClicked(usize, String),
+    BatteryCapacityChanged(u32),
 }
 
-struct AppWidgets {}
+pub struct AppWidgets {
+    pub current_battery_capacity: gtk::Label,
+}
 
 #[cfg(not(feature = "layer-shell"))]
 fn init_window(settings: SettingsDrawerSettings) -> gtk::Window {
@@ -210,6 +213,8 @@ impl SimpleComponent for SettingsDrawer {
 
         let layout = settings.layout.clone();
 
+        let battery_capacity: u32 = 0;
+
         layout.grid.into_iter().for_each(|key| {
             let mut widget_settings = BasicWidgetSettings::default();
 
@@ -303,9 +308,14 @@ impl SimpleComponent for SettingsDrawer {
             wifi_state: WifiState::Off,
             bluetooth_state: BluetoothState::Off,
             setting_actions,
+            battery_capacity,
         };
 
-        let widgets = AppWidgets {};
+        let widgets = AppWidgets {
+            current_battery_capacity: gtk::Label::builder()
+                .label(&model.battery_capacity.to_string())
+                .build(),
+        };
 
         ComponentParts { model, widgets }
     }
@@ -317,6 +327,10 @@ impl SimpleComponent for SettingsDrawer {
                 index,
                 BasicWidgetMessageInput::TitleChanged("Connected".to_string()),
             ),
+            Message::BatteryCapacityChanged(capacity) => {
+                info!("Battery capacity is {:?}", capacity);
+                self.battery_capacity = capacity;
+            }
             _ => {}
         }
     }
@@ -334,6 +348,9 @@ impl SimpleComponent for SettingsDrawer {
         //         let widget = generate_apps_ui(app);
         //         widgets.apps_grid.insert(&widget, -1);
         //     });
+        widgets
+            .current_battery_capacity
+            .set_text(&self.battery_capacity.to_string());
     }
 }
 

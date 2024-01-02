@@ -2,4 +2,7 @@
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "statiolake.vscode-rustfmt",
     "rust-analyzer.cargo.noDefaultFeatures": true,
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
 }
