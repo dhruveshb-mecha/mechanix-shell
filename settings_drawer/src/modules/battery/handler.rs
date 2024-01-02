@@ -47,11 +47,11 @@ impl BatteryServiceHandle {
 
             match BatteryService::get_battery_capacity().await {
                 Ok(battery_capacity) => {
-                    let _ = sender.send(Message::BatteryCapacityUpdate(battery_capacity));
+                    let _ = sender.send(Message::BatteryCapacityChanged(battery_capacity));
                 }
                 Err(e) => {
                     error!("error while getting battery capacity {}", e);
-                    let _ = sender.send(Message::BatteryCapacityUpdate(0));
+                    let _ = sender.send(Message::BatteryCapacityChanged(0));
                 }
             };
         }
