@@ -74,6 +74,6 @@ impl BatteryService {
 
         debug!(task, "battery info is {:?}", battery_info);
 
-        Ok(battery_info.capacity)
+        Ok(battery_info.capacity as u32)
     }
 }
