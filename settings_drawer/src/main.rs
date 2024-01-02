@@ -234,7 +234,7 @@ impl SimpleComponent for SettingsDrawer {
                 widget_settings = BasicWidgetSettings {
                     title: modules.battery.title.to_owned(),
                     icon: modules.battery.icon.level_60.to_owned(),
-                    value: Option::from(65),
+                    value: battery_capacity.to_owned().to_string().parse::<i8>().ok(),
                     value_subscript: Option::from("%".to_string()),
                     ..Default::default()
                 }
