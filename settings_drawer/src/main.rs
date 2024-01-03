@@ -245,6 +245,10 @@ impl AsyncComponent for SettingsDrawer {
 
         let battery_capacity: u32 = 0;
 
+        let current_battery_capacity = gtk::Label::builder()
+            .label(&battery_capacity.to_string())
+            .build();
+
         layout.grid.into_iter().for_each(|key| {
             let mut widget_settings = BasicWidgetSettings::default();
 
@@ -342,9 +346,7 @@ impl AsyncComponent for SettingsDrawer {
         };
 
         let widgets = AppWidgets {
-            current_battery_capacity: gtk::Label::builder()
-                .label(&model.battery_capacity.to_string())
-                .build(),
+            current_battery_capacity,
         };
 
         let sender: relm4::Sender<Message> = sender.input_sender().clone();
@@ -375,20 +377,9 @@ impl AsyncComponent for SettingsDrawer {
 
     /// Update the view to represent the updated model.
     fn update_view(&self, widgets: &mut Self::Widgets, _sender: AsyncComponentSender<Self>) {
-        // widgets.apps_grid.remove_all();
-        // self.settings
-        //     .clone()
-        //     .modules
-        //     .apps
-        //     .into_iter()
-        //     .filter(|app| app.name.to_lowercase().starts_with(&self.search_text))
-        //     .for_each(|app| {
-        //         let widget = generate_apps_ui(app);
-        //         widgets.apps_grid.insert(&widget, -1);
-        //     });
         widgets
             .current_battery_capacity
-            .set_text(&self.battery_capacity.to_string());
+            .set_label(&self.battery_capacity.to_string());
     }
 }
 
