@@ -339,6 +339,10 @@ impl SimpleComponent for SettingsDrawer {
                 .build(),
         };
 
+        let sender: relm4::Sender<Message> = sender.input_sender().clone();
+
+        init_services(settings, sender).await;
+
         ComponentParts { model, widgets }
     }
 
