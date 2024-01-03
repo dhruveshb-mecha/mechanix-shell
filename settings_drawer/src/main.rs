@@ -46,6 +46,23 @@ pub enum BluetoothState {
     Off,
     Connected,
 }
+
+#[derive(Default, Debug, Clone, Copy)]
+pub enum BatteryState {
+    #[default]
+    Level0,
+    Level10,
+    Level20,
+    Level30,
+    Level40,
+    Level50,
+    Level60,
+    Level70,
+    Level80,
+    Level90,
+    Level100,
+    NotFound,
+}
 /// # SettingsDrawer State
 ///
 /// This struct is the state definition of the entire application
@@ -85,6 +102,7 @@ pub enum Message {
     BrightnessStatusChanged(BasicWidgetMessageOutput),
     WidgetClicked(usize, String),
     BatteryCapacityChanged(u32),
+    BatteryStatusUpdate(BatteryState),
 }
 
 pub struct AppWidgets {
