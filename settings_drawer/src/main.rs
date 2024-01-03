@@ -4,7 +4,7 @@ use gtk::{
 };
 use relm4::{
     factory::FactoryVecDeque, gtk, prelude::FactoryComponent, ComponentParts, ComponentSender,
-    RelmApp, RelmWidgetExt, SimpleComponent, WidgetTemplate,
+    RelmApp, RelmWidgetExt, WidgetTemplate,
 };
 use relm4::{
     gtk::{
@@ -14,6 +14,11 @@ use relm4::{
     RelmRemoveAllExt,
 };
 
+use relm4::{async_trait::async_trait, SimpleComponent};
+use relm4::{
+    component::{AsyncComponent, AsyncComponentParts},
+    AsyncComponentSender,
+};
 mod settings;
 mod theme;
 mod widgets;
@@ -23,10 +28,8 @@ use widgets::basic_widget::{
     MessageOutput as BasicWidgetMessageOutput,
 };
 pub mod errors;
-mod event_handler;
-mod modules;
 
-use event_handler::zbus::ZbusServiceHandle;
+mod modules;
 
 use modules::battery::handler::BatteryServiceHandle;
 
@@ -159,7 +162,8 @@ fn init_window(settings: SettingsDrawerSettings) -> gtk::Window {
     window
 }
 
-impl SimpleComponent for SettingsDrawer {
+#[async_trait(?Send)]
+impl AsyncComponent for SettingsDrawer {
     /// The type of the messages that this component can receive.
     type Input = Message;
     /// The type of the messages that this component can send.
@@ -170,6 +174,8 @@ impl SimpleComponent for SettingsDrawer {
     type Root = gtk::Window;
     /// A data structure that contains the widgets that you will need to update.
     type Widgets = AppWidgets;
+
+    type CommandOutput = Message;
 
     fn init_root() -> Self::Root {
         let settings = match settings::read_settings_yml() {
@@ -197,11 +203,11 @@ impl SimpleComponent for SettingsDrawer {
     }
 
     /// Initialize the UI and model.
-    fn init(
+    async fn init(
         _: Self::Init,
-        window: &Self::Root,
-        sender: ComponentSender<Self>,
-    ) -> relm4::ComponentParts<Self> {
+        window: Self::Root,
+        sender: AsyncComponentSender<Self>,
+    ) -> AsyncComponentParts<Self> {
         let settings = match settings::read_settings_yml() {
             Ok(settings) => settings,
             Err(_) => SettingsDrawerSettings::default(),
@@ -341,10 +347,18 @@ impl SimpleComponent for SettingsDrawer {
                 .build(),
         };
 
-        ComponentParts { model, widgets }
+        let sender: relm4::Sender<Message> = sender.input_sender().clone();
+        init_services(settings, sender).await;
+
+        AsyncComponentParts { model, widgets }
     }
 
-    fn update(&mut self, message: Self::Input, _sender: ComponentSender<Self>) {
+    async fn update(
+        &mut self,
+        message: Self::Input,
+        _sender: AsyncComponentSender<Self>,
+        _root: &Self::Root,
+    ) {
         info!("Update message is {:?}", message);
         match message {
             Message::WidgetClicked(index, widget) => self.setting_actions.send(
@@ -360,7 +374,7 @@ impl SimpleComponent for SettingsDrawer {
     }
 
     /// Update the view to represent the updated model.
-    fn update_view(&self, widgets: &mut Self::Widgets, _sender: ComponentSender<Self>) {
+    fn update_view(&self, widgets: &mut Self::Widgets, _sender: AsyncComponentSender<Self>) {
         // widgets.apps_grid.remove_all();
         // self.settings
         //     .clone()
@@ -389,17 +403,10 @@ fn main() {
         .init();
 
     let app = RelmApp::new("app.drawer").with_args(vec![]);
-    app.run::<SettingsDrawer>(());
+    app.run_async::<SettingsDrawer>(());
 }
 
 async fn init_services(settings: SettingsDrawerSettings, sender: relm4::Sender<Message>) {
-    let mut zbus_service_handle = ZbusServiceHandle::new();
-    let sender_clone_1 = sender.clone();
-    let _ = relm4::spawn_local(async move {
-        info!(task = "init_services", "Starting zbus service");
-        zbus_service_handle.run(sender_clone_1).await;
-    });
-
     let mut battery_service_handle = BatteryServiceHandle::new();
     let sender_clone_4 = sender.clone();
     let _ = relm4::spawn_local(async move {
