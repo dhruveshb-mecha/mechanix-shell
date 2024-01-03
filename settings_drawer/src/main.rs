@@ -75,16 +75,7 @@ pub struct SettingsDrawer {
     wifi_state: WifiState,
     bluetooth_state: BluetoothState,
     setting_actions: FactoryVecDeque<BasicWidget>,
-    battery_capacity: u32, // battery_action: BasicWidget,
-                           // cpu_action: BasicWidget,
-                           // memory_action: BasicWidget,
-                           // running_apps_action: BasicWidget,
-                           //wifi_action: BasicWidget,
-                           // bluetooth_action: BasicWidget,
-                           // auto_rotate_action: BasicWidget,
-                           // settings_action: BasicWidget,
-                           // sound_action: BasicWidget,
-                           // brigtness_action: BasicWidget,
+    battery_capacity: u32,
 }
 
 /// ## Message
@@ -370,6 +361,7 @@ impl AsyncComponent for SettingsDrawer {
             Message::BatteryCapacityChanged(capacity) => {
                 info!("Battery capacity is {:?}", capacity);
                 self.battery_capacity = capacity;
+                BasicWidgetMessageInput::ValueChanged(capacity.to_string().parse::<i8>().ok());
             }
             _ => {}
         }
@@ -377,9 +369,102 @@ impl AsyncComponent for SettingsDrawer {
 
     /// Update the view to represent the updated model.
     fn update_view(&self, widgets: &mut Self::Widgets, _sender: AsyncComponentSender<Self>) {
+        // update the view for battery capacity
         widgets
             .current_battery_capacity
             .set_label(&self.battery_capacity.to_string());
+
+        match self.battery_capacity {
+            0..=10 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_0.to_owned(),
+                    ),
+                );
+            }
+            11..=20 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_10.to_owned(),
+                    ),
+                );
+            }
+            21..=30 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_20.to_owned(),
+                    ),
+                );
+            }
+            31..=40 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_30.to_owned(),
+                    ),
+                );
+            }
+            41..=50 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_40.to_owned(),
+                    ),
+                );
+            }
+            51..=60 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_50.to_owned(),
+                    ),
+                );
+            }
+            61..=70 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_60.to_owned(),
+                    ),
+                );
+            }
+            71..=80 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_70.to_owned(),
+                    ),
+                );
+            }
+            81..=90 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_80.to_owned(),
+                    ),
+                );
+            }
+            91..=100 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_90.to_owned(),
+                    ),
+                );
+            }
+            101..=1000 => {
+                self.setting_actions.send(
+                    2,
+                    BasicWidgetMessageInput::IconChanged(
+                        self.settings.modules.battery.icon.level_100.to_owned(),
+                    ),
+                );
+            }
+            _ => {}
+        }
     }
 }
 
