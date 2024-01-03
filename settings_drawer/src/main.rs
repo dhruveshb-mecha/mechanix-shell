@@ -23,10 +23,8 @@ use widgets::basic_widget::{
     MessageOutput as BasicWidgetMessageOutput,
 };
 pub mod errors;
-mod event_handler;
-mod modules;
 
-use event_handler::zbus::ZbusServiceHandle;
+mod modules;
 
 use modules::battery::handler::BatteryServiceHandle;
 
@@ -393,13 +391,6 @@ fn main() {
 }
 
 async fn init_services(settings: SettingsDrawerSettings, sender: relm4::Sender<Message>) {
-    let mut zbus_service_handle = ZbusServiceHandle::new();
-    let sender_clone_1 = sender.clone();
-    let _ = relm4::spawn_local(async move {
-        info!(task = "init_services", "Starting zbus service");
-        zbus_service_handle.run(sender_clone_1).await;
-    });
-
     let mut battery_service_handle = BatteryServiceHandle::new();
     let sender_clone_4 = sender.clone();
     let _ = relm4::spawn_local(async move {
