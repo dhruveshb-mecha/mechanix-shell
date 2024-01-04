@@ -22,6 +22,7 @@ use relm4::{
 mod settings;
 mod theme;
 mod widgets;
+use serde::de;
 use tracing::{error, info};
 use widgets::basic_widget::{
     BasicWidget, BasicWidgetSettings, BasicWidgetType, MessageInput as BasicWidgetMessageInput,
@@ -31,7 +32,9 @@ pub mod errors;
 
 mod modules;
 
-use modules::battery::handler::BatteryServiceHandle;
+use modules::{
+    battery::handler::BatteryServiceHandle, device_info::handler::DeviceInfoServiceHandle,
+};
 
 use crate::settings::SettingsDrawerSettings;
 use crate::theme::SettingsDrawerTheme;
@@ -76,6 +79,8 @@ pub struct SettingsDrawer {
     bluetooth_state: BluetoothState,
     setting_actions: FactoryVecDeque<BasicWidget>,
     battery_capacity: u32,
+    cpu_usage: f32,
+    memory_usage: f64,
 }
 
 /// ## Message
@@ -97,6 +102,8 @@ pub enum Message {
     WidgetClicked(usize, String),
     BatteryCapacityChanged(u32),
     BatteryStatusUpdate(BatteryState),
+    CpuUsgaeStatusChanged(f32),
+    MemoryUsageStatusChanged(f64),
 }
 
 pub struct AppWidgets {
@@ -235,6 +242,8 @@ impl AsyncComponent for SettingsDrawer {
         let layout = settings.layout.clone();
 
         let battery_capacity: u32 = 0;
+        let cpu_usage: f32 = 0.0;
+        let memory_usage: f64 = 0.0;
 
         let current_battery_capacity = gtk::Label::builder()
             .label(&battery_capacity.to_string())
@@ -334,6 +343,8 @@ impl AsyncComponent for SettingsDrawer {
             bluetooth_state: BluetoothState::Off,
             setting_actions,
             battery_capacity,
+            cpu_usage,
+            memory_usage,
         };
 
         let widgets = AppWidgets {
@@ -363,6 +374,15 @@ impl AsyncComponent for SettingsDrawer {
                 self.battery_capacity = capacity;
                 BasicWidgetMessageInput::ValueChanged(capacity.to_string().parse::<i8>().ok());
             }
+            Message::CpuUsgaeStatusChanged(status) => {
+                info!("Cpu status is {:?}", status);
+                // self.setting_actions.send(6, status);
+            }
+            Message::MemoryUsageStatusChanged(status) => {
+                info!("Memory status is {:?}", status);
+                // self.setting_actions.send(7, status);
+            }
+
             _ => {}
         }
     }
@@ -488,5 +508,13 @@ async fn init_services(settings: SettingsDrawerSettings, sender: relm4::Sender<M
     let _ = relm4::spawn_local(async move {
         info!(task = "init_services", "Starting battery service");
         battery_service_handle.run(sender_clone_4).await;
+    });
+
+    let mut device_info_service_handle = DeviceInfoServiceHandle::new();
+
+    let sender_clone_5 = sender.clone();
+    let _ = relm4::spawn_local(async move {
+        info!(task = "init_services", "Starting device info service");
+        device_info_service_handle.run(sender_clone_5).await;
     });
 }
